@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  api:
+    name: API 自检（示例数据）
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: 编译检查
+        run: python -m compileall -q backend tools entrypoint.py
+      - name: 跑全量 API 自检
+        run: python tools/smoke_test.py
+
+  docker:
+    name: 容器镜像可构建
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t tokenlens:ci .
+      - name: 健康检查
+        run: |
+          docker run -d --name tl -p 8787:8787 tokenlens:ci
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8787/api/meta > /tmp/meta.json; then break; fi
+            sleep 1
+          done
+          python -c "import json;m=json.load(open('/tmp/meta.json'));print(m['app']);assert m['app']['name']=='TokenLens'"
+          docker rm -f tl

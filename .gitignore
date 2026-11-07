@@ -1,0 +1,25 @@
+# 运行时数据：TokenLens 会自动生成，不入库
+data/
+*.log
+*.tmp
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# 系统 / 编辑器
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+
+# 本地演示 / 验证产物
+_*.out
+_*.err
+*.local.json
